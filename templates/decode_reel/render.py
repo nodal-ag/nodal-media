@@ -10,15 +10,16 @@ DUR = round(VEND + 2.9, 2)
 INK = (13, 11, 31); VIO = (139, 124, 255); DEEP = (91, 72, 224); OFF = (245, 246, 248); MUT = (169, 166, 191); LIN = (66, 61, 99)
 SURF = (26, 22, 54)
 TAU = 2 * math.pi
-CAR = '/usr/share/fonts/truetype/crosextra/Carlito-Regular.ttf'
-CARB = '/usr/share/fonts/truetype/crosextra/Carlito-Bold.ttf'
-CP = '/home/claude/reel/fonts/CourierPrime-Regular.ttf'
-HEAD = ImageFont.truetype(CAR, 70)
-LAB = ImageFont.truetype(CP, 26)
+CAR = '/home/claude/fonts/Quicksand-500.ttf'
+CARB = '/home/claude/fonts/Quicksand-700.ttf'
+CP = '/home/claude/fonts/Quicksand-600.ttf'
+QL = '/home/claude/fonts/Quicksand-400.ttf'
+HEAD = ImageFont.truetype(CAR, 66)
+LAB = ImageFont.truetype(CP, 30)
 CAP = ImageFont.truetype(CP, 28)
-CAPS = ImageFont.truetype(CP, 22)
-CAPS2 = ImageFont.truetype(CP, 25)
-SUBF = ImageFont.truetype(CARB, 46)
+CAPS = ImageFont.truetype(QL, 24)
+CAPS2 = ImageFont.truetype(CP, 28)
+SUBF = ImageFont.truetype(CARB, 44)
 
 def ease(x): x = min(max(x, 0.0), 1.0); return x * x * (3 - 2 * x)
 def seg(t, a, b): return ease((t - a) / (b - a))
@@ -33,11 +34,11 @@ def shade(c, k): return tuple(v * k for v in c)
 # chapter boundaries from the voice
 def ch_start(c): return min(s['start'] for s in SUBS if s['ch'] == c)
 CS = [0.0] + [ch_start(c) - 0.25 for c in range(1, 5)] + [VEND]
-ACTS = [(CS[0], CS[1], '// DÉCODÉ #01', 'Ce SMS connaît votre nom.'),
-        (CS[1], CS[2], '// 01 — FUITE', 'Vos données circulent déjà.'),
-        (CS[2], CS[3], '// 02 — ENVOI', 'Un message, des milliers de téléphones.'),
-        (CS[3], CS[4], '// 03 — PIÈGE', 'Une fausse page de suivi.'),
-        (CS[4], CS[5], '// 04 — RÉFLEXE', 'Jamais de paiement par lien.')]
+ACTS = [(CS[0], CS[1], ('', 'Décodé #01'), 'Ce SMS connaît votre nom.'),
+        (CS[1], CS[2], ('01', 'Fuite'), 'Vos données circulent déjà.'),
+        (CS[2], CS[3], ('02', 'Envoi'), 'Un message, des milliers de téléphones.'),
+        (CS[3], CS[4], ('03', 'Piège'), 'Une fausse page de suivi.'),
+        (CS[4], CS[5], ('04', 'Réflexe'), 'Jamais de paiement par lien.')]
 def sub_t(txt_start):
     for s in SUBS:
         if s['text'].startswith(txt_start): return s['start']
@@ -128,9 +129,9 @@ class Curve:
         return [self.at(a + (b - a) * j / 60) for j in range(61)]
 
 # sources of leaked data (chapter 1)
-SRC = [((175, 640), '01 · SITES PIRATÉS', 'base de données volée', 'db', sub_t('sites')),
-       ((905, 700), '02 · FORMULAIRES', 'jeux, livraisons, inscriptions', 'doc', sub_t('sites') + 0.85),
-       ((900, 1180), '03 · LISTES REVENDUES', 'copiées et revendues', 'list', sub_t('sites') + 1.7)]
+SRC = [((175, 640), '01|Sites piratés', 'base de données volée', 'db', sub_t('sites')),
+       ((905, 700), '02|Formulaires', 'jeux, livraisons, inscriptions', 'doc', sub_t('sites') + 0.85),
+       ((900, 1180), '03|Listes revendues', 'copiées et revendues', 'list', sub_t('sites') + 1.7)]
 SRC_CURVES = [Curve([(200, 700), (240, 790), (330, 760), (FX0 - 4, 800)]),
               Curve([(860, 740), (800, 800), (740, 790), (FX1 + 4, 860)]),
               Curve([(900, 1120), (850, 1030), (760, 1060), (FX1 + 4, 1020)])]
@@ -148,9 +149,9 @@ CROWD = sorted(set((round(a), round(b)) for a, b in CROWD), key=lambda p: (math.
 PIR = (905, 1150)
 PIR_CURVE = Curve([(FX1 + 4, 1080), (780, 1080), (830, 1160), (PIR[0] - 26, PIR[1])])
 # reflex nodes (chapter 4)
-RFX = [((FX0, 860), '01 · AUCUN LIEN', 'jamais de paiement depuis un SMS', sub_t('Le réflexe')),
-       ((FX1, 1010), '02 · L\'APPLI', 'officielle, ouverte par vous', sub_t('Ouvrez')),
-       ((FX0, 1160), '03 · PARTAGEZ', 'à quelqu\'un qui attend un colis', sub_t('Partagez'))]
+RFX = [((FX0, 860), '01|Aucun lien', 'jamais de paiement depuis un SMS', sub_t('Le réflexe')),
+       ((FX1, 1010), '02|L\'appli', 'officielle, ouverte par vous', sub_t('Ouvrez')),
+       ((FX0, 1160), '03|Partagez', 'à quelqu\'un qui attend un colis', sub_t('Partagez'))]
 
 # ---------------- wordmark ----------------
 def quad(p0, c, p1, n=14): return [((1 - u) ** 2 * p0[0] + 2 * (1 - u) * u * c[0] + u * u * p1[0], (1 - u) ** 2 * p0[1] + 2 * (1 - u) * u * c[1] + u * u * p1[1]) for u in np.linspace(0, 1, n)]
@@ -186,6 +187,23 @@ def tracked(dr, xy, s, font, fill, track=0.3, anchor='l'):
     if anchor == 'm': x -= tot / 2
     if anchor == 'r': x -= tot
     for ch, w_ in zip(s, ws): dr.text((x, y), ch, font=font, fill=fill); x += w_
+def nlabel(dr, xy, num, word, font, al, anchor='l', node=False):
+    """Nodal label: number in violet, word in clear; optional ring + stem like the logo's N terminal."""
+    x, y = xy
+    gap = font.size * 0.45
+    wn = dr.textlength(num, font=font) if num else 0
+    ww = dr.textlength(word, font=font)
+    tot = wn + (gap if num else 0) + ww + (60 if node else 0)
+    if anchor == 'r': x -= tot
+    if anchor == 'm': x -= tot / 2
+    if node:
+        cy = y + font.size * 0.62; r_ = font.size * 0.32
+        dr.ellipse([x, cy - r_, x + 2 * r_, cy + r_], outline=rgba(VIO, al), width=3)
+        dr.line([x + 2 * r_, cy, x + 2 * r_ + 26, cy], fill=rgba(VIO, al), width=3)
+        x += 60
+    if num:
+        dr.text((x, y), num, font=font, fill=rgba(VIO, al)); x += wn + gap
+    dr.text((x, y), word, font=font, fill=rgba(OFF, al))
 def wrap(dr, s, font, maxw):
     lines, cur = [], ''
     for w_ in s.split(' '):
@@ -236,14 +254,14 @@ def doc_sprite(k=SS, lines=7, title='FORMULAIRE'):
     for i in range(lines):
         y = (30 + i * 13) * k; d.line([10 * k, y, 10 * k + rr.uniform(0.4, 0.9) * (w - 20) * k, y], fill=rgba(MUT, 0.8), width=int(2.2 * k))
     return im
-SRC_SPR = [db_sprite(), doc_sprite(), doc_sprite(title='LISTE · 50 000')]
+SRC_SPR = [db_sprite(), doc_sprite(), doc_sprite(title='LISTE')]
 
 # ---------------- phone screen content ----------------
 def screen(t, s, cam):
     """returns RGBA image of the screen content at SS resolution in world units, and its top-left world point"""
     k = SS; w, h = int((SX1 - SX0) * k), int((SY1 - SY0) * k)
     im = Image.new('RGBA', (w, h), (0, 0, 0, 0)); d = ImageDraw.Draw(im)
-    fS = ImageFont.truetype(CP, 13 * k); fB = ImageFont.truetype(CAR, 21 * k); fBb = ImageFont.truetype(CARB, 21 * k)
+    fS = ImageFont.truetype(CP, 14 * k); fB = ImageFont.truetype(CAR, 21 * k); fBb = ImageFont.truetype(CARB, 21 * k)
     fT = ImageFont.truetype(CARB, 26 * k)
     page = seg(t, CS[3] - 0.1, CS[3] + 0.5) * (1 - seg(t, CS[4] + 0.2, CS[4] + 0.8))
     sms = (1 - page)
@@ -251,7 +269,7 @@ def screen(t, s, cam):
     d.text((16 * k, 14 * k), '09:41', font=fS, fill=rgba(MUT, 0.9))
     if sms > 0.01:
         ab = seg(t, 0.4, 1.0) * sms
-        d.text((16 * k, 44 * k), 'COLIS-MAROC', font=fS, fill=rgba(MUT, ab))
+        d.text((16 * k, 44 * k), 'Colis-Maroc', font=fS, fill=rgba(MUT, ab))
         bx0, by0, bx1 = 12 * k, 70 * k, w - 14 * k
         lines = [('Bonjour ', 'Youssef', ','), ('Votre colis est en', None, ''), ('attente. Frais de', None, ''), ('livraison à régler :', None, '')]
         by1 = by0 + (len(lines) * 28 + 56) * k
@@ -268,7 +286,7 @@ def screen(t, s, cam):
                 d.text((x, y), b_, font=fB, fill=rgba(OFF, ab))
         # link
         ly = by0 + (14 + len(lines) * 28) * k
-        lk = 'suivi-colis-ma.top/pay'
+        lk = 'suivi-colis.top/pay'
         glow_l = fade(t, sub_t('avec un lien'), CS[3] + 0.2, 0.3, 0.5)
         cut = seg(t, sub_t('Le réflexe') + 0.4, sub_t('Le réflexe') + 1.0)
         lc = mixc((170, 160, 255), (230, 226, 255), glow_l)
@@ -282,18 +300,18 @@ def screen(t, s, cam):
         if rc > 0:
             cy0 = by1 + 40 * k
             d.rounded_rectangle([bx0, cy0, bx1, cy0 + 120 * k], radius=14 * k, outline=rgba(VIO, rc), width=int(2 * k), fill=rgba(shade(INK, 0.7), rc))
-            d.text((bx0 + 16 * k, cy0 + 16 * k), 'APPLICATION OFFICIELLE', font=fS, fill=rgba(MUT, rc))
+            d.text((bx0 + 16 * k, cy0 + 16 * k), 'Application officielle', font=fS, fill=rgba(MUT, rc))
             d.text((bx0 + 16 * k, cy0 + 42 * k), 'Suivi du colis', font=fBb, fill=rgba(OFF, rc))
-            d.text((bx0 + 16 * k, cy0 + 72 * k), 'Aucun frais en attente', font=fB, fill=rgba((205, 198, 255), rc))
+            d.text((bx0 + 16 * k, cy0 + 72 * k), 'Rien à payer', font=fB, fill=rgba((205, 198, 255), rc))
     if page > 0.01:
         a = page
-        d.text((16 * k, 44 * k), 'SUIVI DE COLIS', font=fS, fill=rgba(MUT, a))
+        d.text((16 * k, 44 * k), 'Suivi de colis', font=fS, fill=rgba(MUT, a))
         d.text((16 * k, 66 * k), 'En attente de', font=fT, fill=rgba(OFF, a))
         d.text((16 * k, 98 * k), 'paiement', font=fT, fill=rgba(OFF, a))
         # progress bar
         d.rounded_rectangle([16 * k, 144 * k, w - 16 * k, 150 * k], radius=3 * k, fill=rgba(LIN, a))
         d.rounded_rectangle([16 * k, 144 * k, 16 * k + (w - 32 * k) * 0.72, 150 * k], radius=3 * k, fill=rgba(VIO, a))
-        fields = [('N° DE CARTE', '•••• •••• •••• ', 16), ('EXPIRATION', '•• / ••', 7), ('CVV', '•••', 3)]
+        fields = [('N° de carte', '•••• •••• •••• ', 16), ('Expiration', '•• / ••', 7), ('CVV', '•••', 3)]
         t0 = CS[3] + 0.7
         for i, (lab, val, n) in enumerate(fields):
             y = (180 + i * 86) * k
@@ -453,9 +471,9 @@ def frame(i):
         al = fade(t, a0 + (0.3 if a0 == 0 else 0.1), a1_ + 0.1, 0.5, 0.45)
         if al > 0:
             off = (1 - ease((t - a0 - 0.1) / 0.8)) * 14
-            tracked(td, (80, 250 + off), lab, LAB, rgba(MUT, al), 0.32)
+            nlabel(td, (80, 246 + off), lab[0], lab[1], LAB, al, node=True)
             for j, ln in enumerate(wrap(td, head, HEAD, 900)):
-                tracked(td, (80, 298 + off + j * 76), ln, HEAD, rgba(OFF, al), -0.01)
+                td.text((80, 300 + off + j * 80), ln, font=HEAD, fill=rgba(OFF, al))
     # source captions (chapter 1)
     for n_, (pos, lab, desc, kind, ts) in enumerate(SRC):
         al = fade(t, ts - 0.1, CS[2] + 0.3, 0.4, 0.6)
@@ -463,28 +481,28 @@ def frame(i):
         p = T(pos, cam); left = pos[0] < 540
         y = p[1] + 78 if n_ == 2 else p[1] - 150
         if left:
-            tracked(td, (44, y), lab, CAPS2, rgba(OFF, al), 0.12, 'l'); td.text((44, y + 34), desc, font=CAPS, fill=rgba(MUT, al))
+            nlabel(td, (44, y), *lab.split('|'), CAPS2, al, 'l'); td.text((44, y + 34), desc, font=CAPS, fill=rgba(MUT, al))
         else:
-            tracked(td, (1036, y), lab, CAPS2, rgba(OFF, al), 0.12, 'r'); dl = td.textlength(desc, font=CAPS); td.text((1036 - dl, y + 34), desc, font=CAPS, fill=rgba(MUT, al))
+            nlabel(td, (1036, y), *lab.split('|'), CAPS2, al, 'r'); dl = td.textlength(desc, font=CAPS); td.text((1036 - dl, y + 34), desc, font=CAPS, fill=rgba(MUT, al))
     # robot caption
     al = fade(t, CS[2] + 0.4, CS[3], 0.4, 0.5)
     if al > 0:
-        rp = T(ROBOT, cam); tracked(td, (rp[0], rp[1] - 66), 'ROBOT · 1 MESSAGE', CAP, rgba(OFF, al), 0.12, 'm')
+        rp = T(ROBOT, cam); tracked(td, (rp[0], rp[1] - 66), 'Robot · 1 message', CAPS2, rgba(OFF, al), 0.02, 'm')
     al = fade(t, sub_t('à des milliers') + 0.1, CS[3], 0.4, 0.5)
     if al > 0:
-        rp = T(ROBOT, cam); tracked(td, (rp[0], rp[1] + 36), '× DES MILLIERS', CAPS, rgba(MUT, al), 0.2, 'm')
+        rp = T(ROBOT, cam); tracked(td, (rp[0], rp[1] + 36), '× des milliers', CAPS, rgba(MUT, al), 0.02, 'm')
     # pirate caption
     al = fade(t, sub_t('et vous donnez') + 0.2, sub_t('Le réflexe') + 0.8, 0.4, 0.5)
     if al > 0:
-        pp = T(PIR, cam); tracked(td, (pp[0], pp[1] + 56), 'PIRATE', CAP, rgba(OFF, al), 0.2, 'm')
-        tracked(td, (pp[0], pp[1] + 92), 'votre carte', CAPS, rgba(MUT, al), 0.1, 'm')
+        pp = T(PIR, cam); tracked(td, (pp[0], pp[1] + 56), 'Pirate', CAPS2, rgba(OFF, al), 0.02, 'm')
+        tracked(td, (pp[0], pp[1] + 92), 'votre carte', CAPS, rgba(MUT, al), 0.02, 'm')
     # reflex captions
     for n_, (pos, lab, desc, ts) in enumerate(RFX):
         al = fade(t, ts + 0.1, VEND - 0.05, 0.5, 0.5)
         if al <= 0: continue
         p = T(pos, cam); right = pos[0] > 540
         x = p[0] + 40 if right else p[0] - 40; anchor = 'l' if right else 'r'
-        tracked(td, (x, p[1] - 30), lab, CAP, rgba(OFF, al), 0.12, anchor)
+        nlabel(td, (x, p[1] - 36), *lab.split('|'), CAPS2, al, anchor)
         for j, ln in enumerate(wrap(td, desc, CAPS, 300)):
             lw_ = td.textlength(ln, font=CAPS)
             td.text((x if right else x - lw_, p[1] + 8 + j * 28), ln, font=CAPS, fill=rgba(MUT, al))
@@ -492,8 +510,8 @@ def frame(i):
     ca = seg(t, WM1 + 0.2, WM1 + 0.7)
     if ca > 0:
         y0 = wm((0, 86))[1] + 70
-        td.text((540 - td.textlength('Là où tout se connecte.', font=ImageFont.truetype(CAR, 50)) / 2, y0), 'Là où tout se connecte.', font=ImageFont.truetype(CAR, 50), fill=rgba(OFF, ca))
-        tracked(td, (540, y0 + 90), 'DÉCODÉ #01', LAB, rgba(MUT, ca), 0.32, 'm')
+        td.text((540 - td.textlength('Là où tout se connecte.', font=ImageFont.truetype(CAR, 48)) / 2, y0), 'Là où tout se connecte.', font=ImageFont.truetype(CAR, 48), fill=rgba(OFF, ca))
+        nlabel(td, (540, y0 + 88), '', 'Décodé #01', ImageFont.truetype(CP, 30), ca, 'm', node=True)
     # subtitles
     for sb in SUBS:
         al = fade(t, sb['start'] - 0.05, sb['end'] + 0.15, 0.12, 0.12)
